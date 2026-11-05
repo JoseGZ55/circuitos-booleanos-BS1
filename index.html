@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Circuitos Booleanos</title>
+<style>
+  :root {
+    --tinta: #1d2430;
+    --tenue: #5b6575;
+    --borde: #d5dae1;
+    --fondo: #f5f6f8;
+    --panel: #ffffff;
+    --acento: #1f5fa8;
+    --acento-suave: #e6eef8;
+    --uno: #fff3c4;
+    --uno-borde: #e3c860;
+    --error: #a3261d;
+    --error-suave: #fbeceb;
+    --mono: "Cascadia Mono", Consolas, "DejaVu Sans Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--fondo); color: var(--tinta);
+    font: 15px/1.5 "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  header { background: var(--panel); border-bottom: 1px solid var(--borde); }
+  header .cont { padding-top: 14px; padding-bottom: 12px; }
+  h1 { font-size: 20px; margin: 0; font-weight: 600; }
+  header p { margin: 2px 0 0; color: var(--tenue); font-size: 13.5px; }
+  .cont { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+  main.cont { padding-top: 18px; padding-bottom: 40px; }
+
+  .panel { background: var(--panel); border: 1px solid var(--borde); border-radius: 6px; padding: 16px 18px; margin-bottom: 18px; }
+  .panel h2 { font-size: 16px; margin: 0; font-weight: 600; }
+  .panel-cab { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+
+  /* pestañas de modo */
+  .modos { display: flex; gap: 0; border-bottom: 1px solid var(--borde); margin: -4px 0 14px; }
+  .modos button {
+    border: 0; background: none; padding: 8px 14px; font: inherit; color: var(--tenue); cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+  }
+  .modos button[aria-selected="true"] { color: var(--acento); border-bottom-color: var(--acento); font-weight: 600; }
+
+  button.btn {
+    font: inherit; font-size: 14px; padding: 6px 12px; border-radius: 4px; cursor: pointer;
+    border: 1px solid var(--borde); background: var(--panel); color: var(--tinta);
+  }
+  button.btn:hover { border-color: var(--acento); }
+  button.btn.primario { background: var(--acento); border-color: var(--acento); color: #fff; }
+
+  .fila-entrada { display: flex; gap: 8px; align-items: center; }
+  .fila-entrada label { font-family: var(--mono); font-size: 17px; white-space: nowrap; }
+  #formula {
+    flex: 1; min-width: 0; font-family: var(--mono); font-size: 17px; padding: 7px 10px;
+    border: 1px solid var(--borde); border-radius: 4px; color: var(--tinta);
+  }
+  #formula:focus { outline: 2px solid var(--acento-suave); border-color: var(--acento); }
+  #formula.con-error { border-color: var(--error); }
+  .ayuda { color: var(--tenue); font-size: 13px; margin: 8px 0 0; }
+  .ayuda code { font-family: var(--mono); color: var(--tinta); background: var(--fondo); padding: 0 3px; border-radius: 3px; }
+
+  .error { margin-top: 10px; background: var(--error-suave); border: 1px solid #efc4c0; border-radius: 4px; padding: 8px 12px; color: var(--error); }
+  .error pre { margin: 6px 0 0; font-family: var(--mono); font-size: 15px; color: var(--tinta); }
+  .error pre .marca { color: var(--error); font-weight: 700; }
+
+  .ejemplos { margin-top: 14px; }
+  .ejemplos h3 { font-size: 13px; font-weight: 600; color: var(--tenue); margin: 0 0 6px; }
+  .ejemplos ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .ejemplos button {
+    font-family: var(--mono); font-size: 13px; padding: 3px 8px; cursor: pointer;
+    border: 1px solid var(--borde); border-radius: 4px; background: var(--fondo); color: var(--tinta);
+  }
+  .ejemplos button:hover { border-color: var(--acento); background: var(--acento-suave); }
+  .ejemplos .num { color: var(--tenue); margin-right: 4px; }
+
+  .opciones-b { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .opciones-b label { cursor: pointer; }
+
+  /* tabla de verdad */
+  .tabla-envoltura { overflow-x: auto; }
+  table.verdad { border-collapse: collapse; font-family: var(--mono); font-size: 15px; margin: 0 auto; }
+  table.verdad th, table.verdad td { border: 1px solid var(--borde); padding: 3px 14px; text-align: center; }
+  table.verdad th { background: var(--fondo); font-weight: 600; }
+  table.verdad th.sal, table.verdad td.sal { border-left: 2px solid var(--tinta); }
+  table.verdad td.min, table.verdad th.min { color: var(--tenue); border-left: 2px solid var(--tinta); }
+  table.verdad tr.uno td { background: var(--uno); }
+  table.verdad tr.uno td.sal { font-weight: 700; }
+  table.verdad.editable tbody tr { cursor: pointer; }
+  table.verdad.editable tbody tr:hover td { outline: 1px solid var(--acento); outline-offset: -1px; }
+  table.verdad.editable td.sal { color: var(--acento); }
+  .nota-b { color: var(--tenue); font-size: 13px; text-align: center; margin: 8px 0 0; }
+
+  .ecuaciones { margin: 16px auto 0; font-family: var(--mono); font-size: 15.5px; width: fit-content; max-width: 100%; }
+  .ecuaciones div { padding: 2px 0; overflow-wrap: anywhere; }
+  .ecuaciones .etq { font-family: inherit; color: var(--tenue); font-size: 12.5px; display: block; font-family: "Segoe UI", system-ui, sans-serif; }
+
+  .aviso-copia { color: #2b7a3d; font-size: 13px; margin-left: 8px; }
+  /* diagrama */
+  .acciones { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .selector { display: inline-flex; border: 1px solid var(--borde); border-radius: 4px; overflow: hidden; margin-right: 6px; }
+  .selector label { padding: 5px 10px; font-size: 14px; cursor: pointer; }
+  .selector label + label { border-left: 1px solid var(--borde); }
+  .selector input { position: absolute; opacity: 0; pointer-events: none; }
+  .selector label:has(input:checked) { background: var(--acento); color: #fff; }
+  .selector label:has(input:focus-visible) { outline: 2px solid var(--acento); outline-offset: -2px; }
+  .expr-diagrama { font-family: var(--mono); font-size: 15.5px; text-align: center; margin: 0 0 10px; overflow-wrap: anywhere; }
+  .expr-diagrama .nota-sol { font-family: "Segoe UI", system-ui, sans-serif; color: var(--tenue); font-size: 13px; }
+  .diagrama { overflow: auto; }
+  .diagrama svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+  /* simplificación */
+  .resultado { border: 1px solid var(--borde); background: var(--fondo); border-radius: 4px; padding: 10px 14px; }
+  .resultado .etq { color: var(--tenue); font-size: 12.5px; }
+  .formula-grande { font-family: var(--mono); font-size: 19px; font-weight: 600; overflow-wrap: anywhere; }
+  .num-sol { color: var(--tenue); font-weight: 400; margin-right: 8px; }
+  .resultado .meta { color: var(--tenue); font-size: 13px; }
+  .resultado .nota { margin: 6px 0 0; font-size: 14px; }
+  #simplificacion h3 { font-size: 14.5px; margin: 22px 0 6px; font-weight: 600; }
+  .explica { color: var(--tenue); font-size: 13.5px; margin: 0 0 10px; max-width: 80ch; }
+  .columnas-qm { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; }
+  table.qm { border-collapse: collapse; font-size: 14px; }
+  table.qm caption { text-align: left; font-size: 13px; color: var(--tenue); padding-bottom: 4px; }
+  table.qm th, table.qm td { border: 1px solid var(--borde); padding: 2px 10px; text-align: center; }
+  table.qm th { background: var(--fondo); font-weight: 600; font-family: var(--mono); font-size: 13px; }
+  table.qm td { font-family: var(--mono); }
+  table.qm td.bin { letter-spacing: .5px; white-space: pre; }
+  table.qm td.term { text-align: left; }
+  table.qm tr.inicio-grupo td { border-top: 2px solid var(--tinta); }
+  table.qm td.grupo { color: var(--tenue); }
+  table.qm td.marca-qm { min-width: 38px; }
+  table.qm.carta td.x { color: var(--tinta); }
+  table.qm.carta td.unico { font-weight: 700; color: var(--acento); }
+  table.qm.carta tr.esencial td { background: var(--acento-suave); }
+  .tag { font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; color: var(--acento); border: 1px solid var(--acento); border-radius: 3px; padding: 0 4px; margin-left: 4px; }
+  .pasos-lista { margin: 0; padding-left: 20px; }
+  .pasos-lista li { margin-bottom: 6px; }
+  .petrick { font-family: var(--mono); margin: 4px 0 6px; overflow-wrap: anywhere; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <div class="cont">
+    <h1>Circuitos Booleanos</h1>
+    <p>Fórmula booleana ⇄ tabla de verdad ⇄ diagrama de compuertas · Biología Sintética 1 · UTEC</p>
+  </div>
+</header>
+
+<main class="cont">
+  <section class="panel" id="panel-entrada">
+    <div class="modos" role="tablist">
+      <button role="tab" id="tab-a" aria-selected="true">Modo A · desde la fórmula</button>
+      <button role="tab" id="tab-b" aria-selected="false">Modo B · desde la tabla de verdad</button>
+    </div>
+
+    <div id="modo-a">
+      <form class="fila-entrada" id="form-a" autocomplete="off">
+        <label for="formula">Fo =</label>
+        <input id="formula" type="text" spellcheck="false" placeholder="por ejemplo  X'Y'Z + X'YZ + XY'">
+        <button class="btn primario" type="submit">Generar</button>
+      </form>
+      <p class="ayuda">
+        Notación: <code>X'</code> negación · <code>+</code> OR · <code>XY</code> o <code>X.Y</code> AND ·
+        paréntesis para agrupar, p. ej. <code>YZ(X+X')</code>. Variables <code>X Y Z</code> y opcionalmente <code>W</code>.
+      </p>
+      <div class="error" id="error-a" hidden></div>
+      <div class="ejemplos">
+        <h3>Ejemplos de la guía</h3>
+        <ul id="lista-ejemplos"></ul>
+      </div>
+    </div>
+
+    <div id="modo-b" hidden>
+      <div class="opciones-b">
+        <span>Número de variables:</span>
+        <label><input type="radio" name="nvars" value="3" checked> 3 (X, Y, Z)</label>
+        <label><input type="radio" name="nvars" value="4"> 4 (W, X, Y, Z)</label>
+        <button class="btn" id="limpiar-b" type="button">Poner todo en 0</button>
+      </div>
+      <p class="ayuda">Haga clic en una fila de la tabla de verdad para cambiar la salida Fo entre 0 y 1.</p>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-tabla" hidden>
+    <div class="panel-cab">
+      <h2>Tabla de verdad</h2>
+      <div><span class="aviso-copia" id="aviso-latex" hidden>Copiado</span>
+        <button class="btn" id="copiar-latex" type="button">Copiar tabla en LaTeX</button></div>
+    </div>
+    <div class="tabla-envoltura" id="tabla"></div>
+    <div class="ecuaciones" id="ecuaciones"></div>
+  </section>
+  <section class="panel" id="panel-diagrama" hidden>
+    <div class="panel-cab">
+      <h2>Diagrama de compuertas</h2>
+      <div class="acciones">
+        <span class="selector" role="radiogroup" aria-label="Forma a dibujar">
+          <label><input type="radio" name="forma" value="simplificada" checked> Simplificada</label>
+          <label><input type="radio" name="forma" value="canonica"> Canónica (suma de minterminos)</label>
+        </span>
+        <button class="btn" id="descargar-svg" type="button">Descargar SVG</button>
+        <button class="btn" id="descargar-png" type="button">Descargar PNG</button>
+      </div>
+    </div>
+    <p class="expr-diagrama" id="expr-diagrama"></p>
+    <div class="diagrama" id="diagrama"></div>
+  </section>
+
+  <section class="panel" id="panel-simpl" hidden>
+    <div class="panel-cab"><h2>Simplificación (Quine-McCluskey)</h2></div>
+    <div id="simplificacion"></div>
+  </section>
+</main>
+
+<!--
+  MOTOR LÓGICO
+  Funciones puras, sin acceso al DOM. Este bloque es el que lee tests/tests.js.
+-->
+<script id="motor">
+const Motor = (function () {
+  'use strict';
+
+  /* =========================================================
+     1. PARSER
+     Gramática (de menor a mayor precedencia):
+       expresion := termino ( '+' termino )*
+       termino   := factor ( '.'? factor )*      (producto explícito o por yuxtaposición)
+       factor    := primario "'"*                (negación postfija)
+       primario  := VARIABLE | '(' expresion ')'
+     ========================================================= */
+
+  const VARIABLES = ['W', 'X', 'Y', 'Z'];          // orden canónico (W = bit más significativo)
+  const APOSTROFES = "'’‘´′";  // ' ’ ‘ ´ ′  (variantes al copiar desde PDF/Word)
+  const PUNTOS = '.·';                        // .  ·
+
+  class ErrorSintaxis extends Error {
+    constructor(mensaje, posicion) {
+      super(mensaje);
+      this.name = 'ErrorSintaxis';
+      this.posicion = posicion;   // columna 1-based dentro del texto original
+    }
+  }
+
+  function describir(tok) {
+    switch (tok.tipo) {
+      case 'VAR': return "la variable '" + tok.valor + "'";
+      case 'OR':  return "'+'";
+      case 'AND': return "'.'";
+      case 'NOT': return "un apóstrofe (')";
+      case 'LP':  return "'('";
+      case 'RP':  return "')'";
+      default:    return 'el final de la expresión';
+    }
+  }
+
+  function tokenizar(texto) {
+    const toks = [];
+    for (let i = 0; i < texto.length; i++) {
+      const c = texto[i];
+      const pos = i + 1;
+      if (/\s/.test(c)) continue;
+      if (VARIABLES.includes(c))            toks.push({ tipo: 'VAR', valor: c, pos });
+      else if (APOSTROFES.includes(c))      toks.push({ tipo: 'NOT', pos });
+      else if (c === '+')                   toks.push({ tipo: 'OR', pos });
+      else if (PUNTOS.includes(c))          toks.push({ tipo: 'AND', pos });
+      else if (c === '(')                   toks.push({ tipo: 'LP', pos });
+      else if (c === ')')                   toks.push({ tipo: 'RP', pos });
+      else if ('wxyz'.includes(c))
+        throw new ErrorSintaxis("Posición " + pos + ": las variables se escriben en mayúscula; use '" +
+          c.toUpperCase() + "' en lugar de '" + c + "'.", pos);
+      else if (/[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(c))
+        throw new ErrorSintaxis("Posición " + pos + ": la variable '" + c +
+          "' no está permitida. Use solo W, X, Y o Z.", pos);
+      else
+        throw new ErrorSintaxis("Posición " + pos + ": el carácter '" + c +
+          "' no es válido. Use variables (W, X, Y, Z), ' para negar, + para OR, . o yuxtaposición para AND, y paréntesis.", pos);
+    }
+    toks.push({ tipo: 'FIN', pos: texto.length + 1 });
+    return toks;
+  }
+
+  function parsear(texto) {
+    if (typeof texto !== 'string' || texto.trim() === '')
+      throw new ErrorSintaxis('La expresión está vacía. Escriba una función, por ejemplo: X\'Z + XY\'', 1);
+
+    const toks = tokenizar(texto);
+    let k = 0;
+    const ver = () => toks[k];
+    const tomar = () => toks[k++];
+
+    function errorEsperado(tok, contexto) {
+      if (tok.tipo === 'FIN')
+        return new ErrorSintaxis('Posición ' + tok.pos + ': la expresión termina de forma incompleta' +
+          (contexto ? ' ' + contexto : '') + '; falta una variable o un paréntesis.', tok.pos);
+      if (tok.tipo === 'NOT')
+        return new ErrorSintaxis('Posición ' + tok.pos + ": el apóstrofe (') debe ir inmediatamente " +
+          "después de una variable o de un ')', por ejemplo X' o (X+Y)'.", tok.pos);
+      if (tok.tipo === 'RP' && contexto === "después de '('")
+        return new ErrorSintaxis('Posición ' + tok.pos + ': hay paréntesis vacíos "()".', tok.pos);
+      return new ErrorSintaxis('Posición ' + tok.pos + ': se esperaba una variable o \'(\'' +
+        (contexto ? ' ' + contexto : '') + ', pero se encontró ' + describir(tok) + '.', tok.pos);
+    }
+
+    function expresion() {
+      const terminos = [termino(null)];
+      while (ver().tipo === 'OR') {
+        tomar();
+        terminos.push(termino("después de '+'"));
+      }
+      return terminos.length === 1 ? terminos[0] : { tipo: 'or', args: terminos };
+    }
+
+    function termino(contexto) {
+      const factores = [factor(contexto)];
+      for (;;) {
+        const t = ver();
+        if (t.tipo === 'AND') { tomar(); factores.push(factor("después de '.'")); }
+        else if (t.tipo === 'VAR' || t.tipo === 'LP') factores.push(factor(null));
+        else break;
+      }
+      return factores.length === 1 ? factores[0] : { tipo: 'and', args: factores };
+    }
+
+    function factor(contexto) {
+      let nodo = primario(contexto);
+      while (ver().tipo === 'NOT') { tomar(); nodo = { tipo: 'not', arg: nodo }; }
+      return nodo;
+    }
+
+    function primario(contexto) {
+      const t = ver();
+      if (t.tipo === 'VAR') { tomar(); return { tipo: 'var', nombre: t.valor }; }
+      if (t.tipo === 'LP') {
+        tomar();
+        if (ver().tipo === 'RP') throw errorEsperado(ver(), "después de '('");
+        const dentro = expresion();
+        const cierre = ver();
+        if (cierre.tipo !== 'RP') {
+          if (cierre.tipo === 'FIN')
+            throw new ErrorSintaxis('Posición ' + t.pos + ": el paréntesis '(' abierto aquí nunca se cierra; falta ')'.", t.pos);
+          throw new ErrorSintaxis('Posición ' + cierre.pos + ": se esperaba ')' para cerrar el paréntesis abierto en la posición " +
+            t.pos + ', pero se encontró ' + describir(cierre) + '.', cierre.pos);
+        }
+        tomar();
+        return dentro;
+      }
+      throw errorEsperado(t, contexto);
+    }
+
+    const ast = expresion();
+    const resto = ver();
+    if (resto.tipo !== 'FIN') {
+      if (resto.tipo === 'RP')
+        throw new ErrorSintaxis('Posición ' + resto.pos + ": el paréntesis ')' no tiene un '(' que le corresponda.", resto.pos);
+      throw new ErrorSintaxis('Posición ' + resto.pos + ': no se esperaba ' + describir(resto) + '.', resto.pos);
+    }
+    return ast;
+  }
+
+  /* ---------- utilidades sobre el árbol ---------- */
+
+  function variablesUsadas(ast) {
+    const s = new Set();
+    (function rec(n) {
+      if (n.tipo === 'var') s.add(n.nombre);
+      else if (n.tipo === 'not') rec(n.arg);
+      else n.args.forEach(rec);
+    })(ast);
+    return VARIABLES.filter(v => s.has(v));
+  }
+
+  function evaluar(ast, valores) {
+    switch (ast.tipo) {
+      case 'var': return valores[ast.nombre] ? 1 : 0;
+      case 'not': return evaluar(ast.arg, valores) ? 0 : 1;
+      case 'and': return ast.args.every(a => evaluar(a, valores)) ? 1 : 0;
+      case 'or':  return ast.args.some(a => evaluar(a, valores)) ? 1 : 0;
+    }
+    throw new Error('Nodo desconocido: ' + ast.tipo);
+  }
+
+  // Texto normalizado del árbol (paréntesis solo donde hacen falta).
+  function aTexto(ast) {
+    switch (ast.tipo) {
+      case 'var': return ast.nombre;
+      case 'not': return (ast.arg.tipo === 'var' || ast.arg.tipo === 'not')
+        ? aTexto(ast.arg) + "'" : '(' + aTexto(ast.arg) + ")'";
+      case 'and': return ast.args.map(a => a.tipo === 'or' ? '(' + aTexto(a) + ')' : aTexto(a)).join('');
+      case 'or':  return ast.args.map(aTexto).join(' + ');
+    }
+  }
+
+  // Índices de los minterminos donde la función vale 1.
+  // vars[0] es el bit más significativo: con [X,Y,Z], m = 4X + 2Y + Z.
+  function minterminos(ast, vars) {
+    const n = vars.length, res = [];
+    for (let m = 0; m < (1 << n); m++) {
+      const valores = {};
+      vars.forEach((v, i) => { valores[v] = (m >> (n - 1 - i)) & 1; });
+      if (evaluar(ast, valores)) res.push(m);
+    }
+    return res;
+  }
+
+  /* =========================================================
+     2. TABLA DE VERDAD
+     Siempre al menos X, Y, Z (8 filas); si aparece W, W X Y Z (16 filas).
+     El primer elemento de `vars` es el bit más significativo.
+     ========================================================= */
+
+  const NOMBRE_SALIDA = 'Fo';
+
+  function variablesDeTabla(ast) {
+    return variablesUsadas(ast).includes('W') ? ['W', 'X', 'Y', 'Z'] : ['X', 'Y', 'Z'];
+  }
+
+  function bitsDe(m, n) {
+    const b = [];
+    for (let i = n - 1; i >= 0; i--) b.push((m >> i) & 1);
+    return b;
+  }
+
+  // Tabla a partir de un vector de salidas (modo B) — salidas[m] ∈ {0,1}.
+  function tablaDesdeSalidas(vars, salidas) {
+    const n = vars.length;
+    if (salidas.length !== (1 << n)) throw new Error('Se esperaban ' + (1 << n) + ' salidas');
+    const filas = [];
+    for (let m = 0; m < (1 << n); m++) filas.push({ m, bits: bitsDe(m, n), salida: salidas[m] ? 1 : 0 });
+    return { vars, filas, unos: filas.filter(f => f.salida).map(f => f.m) };
+  }
+
+  // Tabla a partir de una fórmula (modo A).
+  function tablaVerdad(ast, vars) {
+    vars = vars || variablesDeTabla(ast);
+    const unos = new Set(minterminos(ast, vars));
+    const salidas = [];
+    for (let m = 0; m < (1 << vars.length); m++) salidas.push(unos.has(m) ? 1 : 0);
+    return tablaDesdeSalidas(vars, salidas);
+  }
+
+  // m = 3 con [X,Y,Z] → "X'YZ"
+  function textoMintermino(m, vars) {
+    return bitsDe(m, vars.length).map((b, i) => vars[i] + (b ? '' : "'")).join('');
+  }
+
+  // [1,3,4] → "m1 + m3 + m4"   ([] → "0")
+  function textoSumaMinterminos(unos) {
+    return unos.length ? unos.map(m => 'm' + m).join(' + ') : '0';
+  }
+
+  // [1,3] con [X,Y,Z] → "X'Y'Z + X'YZ"   ([] → "0")
+  function textoDesarrollo(unos, vars) {
+    return unos.length ? unos.map(m => textoMintermino(m, vars)).join(' + ') : '0';
+  }
+
+  function tablaLatex(tabla) {
+    const v = tabla.vars;
+    const L = [];
+    L.push('% Requiere en el preámbulo: \\usepackage[table]{xcolor}');
+    L.push('\\begin{tabular}{|' + v.map(() => 'c').join('|') + '|c|c|}');
+    L.push('\\hline');
+    L.push(v.map(x => '$' + x + '$').join(' & ') + ' & $F_o$ & Mintérmino \\\\');
+    L.push('\\hline');
+    for (const f of tabla.filas)
+      L.push((f.salida ? '\\rowcolor[HTML]{FFF3C4} ' : '') +
+        f.bits.join(' & ') + ' & ' + f.salida + ' & $m_{' + f.m + '}$ \\\\');
+    L.push('\\hline');
+    L.push('\\end{tabular}');
+    return L.join('\n');
+  }
+
+  /* =========================================================
+     3. SIMPLIFICACIÓN: QUINE-McCLUSKEY + MÉTODO DE PETRICK
+     Un término se representa con un "patrón" de n caracteres:
+     '1' variable, '0' variable negada, '-' variable eliminada.
+     Ej. con [X,Y,Z]: "0-1" = X'Z.
+     ========================================================= */
+
+  const binario = (m, n) => bitsDe(m, n).join('');
+  const unosDe = p => p.split('').filter(c => c === '1').length;
+  const literales = p => p.split('').filter(c => c !== '-').length;
+
+  // Combina dos patrones si difieren en exactamente un bit (y tienen los '-' en el mismo lugar).
+  function combinar(a, b) {
+    let dif = -1;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] === b[i]) continue;
+      if (a[i] === '-' || b[i] === '-' || dif !== -1) return null;
+      dif = i;
+    }
+    return dif === -1 ? null : a.slice(0, dif) + '-' + a.slice(dif + 1);
+  }
+
+  function textoPatron(p, vars) {
+    let s = '';
+    for (let i = 0; i < p.length; i++) if (p[i] !== '-') s += vars[i] + (p[i] === '0' ? "'" : '');
+    return s || '1';
+  }
+
+  // Orden de presentación: menos literales primero; luego por variable, 0 antes que 1 (como en la tabla).
+  const RANGO = { '0': 0, '1': 1, '-': 2 };
+  function compararPatrones(a, b) {
+    const d = literales(a) - literales(b);
+    if (d) return d;
+    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return RANGO[a[i]] - RANGO[b[i]];
+    return 0;
+  }
+  const ordenarPatrones = ps => ps.slice().sort(compararPatrones);
+
+  function textoSOP(patrones, vars) {
+    return patrones.length ? ordenarPatrones(patrones).map(p => textoPatron(p, vars)).join(' + ') : '0';
+  }
+
+  const compararListas = (a, b) => {
+    for (let i = 0; i < Math.min(a.length, b.length); i++) if (a[i] !== b[i]) return a[i] - b[i];
+    return a.length - b.length;
+  };
+
+  // Absorción para Petrick: elimina productos que contienen a otro (A + AB = A).
+  function absorber(productos) {
+    const unicos = [...new Set(productos)];
+    return unicos.filter(q => !unicos.some(p => p !== q && (p & q) === p));
+  }
+
+  /*
+   * Devuelve todos los pasos:
+   *   columnas    : [ [ {unos, terminos:[{patron, mins, combinado, etiqueta?}]} ] ]  (Columna I, II, ...)
+   *   primos      : [ {patron, mins, etiqueta:'P1'} ]
+   *   cubridores  : { m: [índices de primos que cubren m] }
+   *   esenciales  : [ {indice, por:[m que solo cubre ese primo]} ]
+   *   restantes   : minterminos no cubiertos por los esenciales
+   *   petrick     : null | { sumas:[{m, primos:[índices]}], productos:[[índices]] }
+   *   soluciones  : [ {indices, patrones, terminos, literales} ]  todas las de costo mínimo
+   */
+  function quineMcCluskey(unosEntrada, n) {
+    const unos = [...new Set(unosEntrada)].sort((a, b) => a - b);
+    const r = { n, unos, columnas: [], primos: [], cubridores: {}, esenciales: [], restantes: [], petrick: null, soluciones: [] };
+    if (!unos.length) {
+      r.soluciones = [{ indices: [], patrones: [], terminos: 0, literales: 0 }];
+      return r;
+    }
+
+    // Paso 1 — agrupar por número de unos y combinar grupos vecinos, columna por columna.
+    let actual = unos.map(m => ({ patron: binario(m, n), mins: [m] }));
+    while (actual.length) {
+      const grupos = [];
+      for (const t of actual) {
+        t.combinado = false;
+        const g = unosDe(t.patron);
+        (grupos[g] = grupos[g] || []).push(t);
+      }
+      grupos.forEach(l => l && l.sort((a, b) => compararListas(a.mins, b.mins)));
+      const siguiente = new Map();
+      for (let g = 0; g < grupos.length - 1; g++) {
+        if (!grupos[g] || !grupos[g + 1]) continue;
+        for (const a of grupos[g]) for (const b of grupos[g + 1]) {
+          const c = combinar(a.patron, b.patron);
+          if (!c) continue;
+          a.combinado = b.combinado = true;
+          if (!siguiente.has(c)) siguiente.set(c, { patron: c, mins: [...a.mins, ...b.mins].sort((x, y) => x - y) });
+        }
+      }
+      const columna = [];
+      grupos.forEach((l, g) => { if (l) columna.push({ unos: g, terminos: l }); });
+      r.columnas.push(columna);
+      for (const c of columna) for (const t of c.terminos) if (!t.combinado) {
+        t.etiqueta = 'P' + (r.primos.length + 1);
+        r.primos.push(t);
+      }
+      actual = [...siguiente.values()];
+    }
+
+    // Paso 2 — tabla de implicantes primos y esenciales.
+    for (const m of unos) r.cubridores[m] = r.primos.map((p, i) => i).filter(i => r.primos[i].mins.includes(m));
+    const esenciales = new Map();
+    for (const m of unos) {
+      const c = r.cubridores[m];
+      if (c.length === 1) {
+        if (!esenciales.has(c[0])) esenciales.set(c[0], []);
+        esenciales.get(c[0]).push(m);
+      }
+    }
+    r.esenciales = [...esenciales.keys()].sort((a, b) => a - b).map(i => ({ indice: i, por: esenciales.get(i) }));
+    const cubiertos = new Set();
+    r.esenciales.forEach(e => r.primos[e.indice].mins.forEach(m => cubiertos.add(m)));
+    r.restantes = unos.filter(m => !cubiertos.has(m));
+
+    // Paso 3 — si quedan minterminos, método de Petrick sobre ellos.
+    let elecciones = [[]];
+    if (r.restantes.length) {
+      const sumas = r.restantes.map(m => ({ m, primos: r.cubridores[m] }));
+      let productos = [0n];
+      for (const s of sumas) {
+        const nuevos = [];
+        for (const p of productos) for (const i of s.primos) nuevos.push(p | (1n << BigInt(i)));
+        productos = absorber(nuevos);
+      }
+      elecciones = productos.map(mask => r.primos.map((_, i) => i).filter(i => (mask >> BigInt(i)) & 1n));
+      elecciones.sort((a, b) => a.length - b.length || compararListas(a, b));
+      r.petrick = { sumas, productos: elecciones };
+    }
+
+    // Paso 4 — soluciones de costo mínimo: menos términos y, a igualdad, menos literales.
+    const candidatas = elecciones.map(extra => {
+      const indices = [...r.esenciales.map(e => e.indice), ...extra].sort((a, b) => a - b);
+      const patrones = ordenarPatrones(indices.map(i => r.primos[i].patron));
+      return { indices, patrones, terminos: indices.length, literales: patrones.reduce((s, p) => s + literales(p), 0) };
+    });
+    const minT = Math.min(...candidatas.map(c => c.terminos));
+    const minL = Math.min(...candidatas.filter(c => c.terminos === minT).map(c => c.literales));
+    r.soluciones = candidatas.filter(c => c.terminos === minT && c.literales === minL);
+    return r;
+  }
+
+  // Si la expresión es una suma de productos de literales, devuelve sus patrones; si no, null.
+  function terminosSOP(ast, vars) {
+    const pats = [];
+    for (const t of (ast.tipo === 'or' ? ast.args : [ast])) {
+      const p = vars.map(() => '-');
+      for (const f of (t.tipo === 'and' ? t.args : [t])) {
+        let nombre, val;
+        if (f.tipo === 'var') { nombre = f.nombre; val = '1'; }
+        else if (f.tipo === 'not' && f.arg.tipo === 'var') { nombre = f.arg.nombre; val = '0'; }
+        else return null;
+        const i = vars.indexOf(nombre);
+        if (p[i] !== '-') return null;           // literal repetido (XX) o contradictorio (XX')
+        p[i] = val;
+      }
+      pats.push(p.join(''));
+    }
+    return pats;
+  }
+
+  // ¿La expresión escrita por el usuario coincide con alguna de las soluciones mínimas?
+  function entradaEsMinima(ast, vars, qm) {
+    const pats = terminosSOP(ast, vars);
+    if (!pats) return false;
+    const clave = pats.slice().sort().join('|');
+    return qm.soluciones.some(s => s.patrones.slice().sort().join('|') === clave);
+  }
+
+  /* =========================================================
+     4. DIAGRAMA DE COMPUERTAS (símbolos ANSI / norteamericanos)
+
+     Disposición de izquierda a derecha:
+       entradas rotuladas → columna de inversores → rieles verticales
+       (uno por literal: X, X', Y, ...) → columna de AND → canal → OR → Fo
+
+     Los rieles se ordenan en "escalera" (el de la fila superior queda más a la
+     derecha) para que las líneas de entrada no crucen ningún riel. Los únicos
+     cruces que quedan son los de las derivaciones horizontales hacia las AND,
+     y el canal hacia la OR se enruta sin cruces.
+
+     El generador devuelve un MODELO geométrico (segmentos, compuertas, puntos
+     de unión) y luego svgDiagrama() lo dibuja. Los tests usan el modelo para
+     reconstruir las conexiones y simular el circuito.
+     ========================================================= */
+
+  const D = {
+    TOP: 34, FILA: 34,                     // banda de entradas
+    X_IN: 40, X_RAMA: 62, X_NOT: 86,       // inicio de entradas, derivación, inversor
+    NOT_L: 32,                             // triángulo (24) + burbuja (8)
+    SEP_RIEL0: 28, RIEL: 24,               // primer riel y separación entre rieles
+    PIN: 20, AND_MIN: 40, AND_RECTO: 30,   // pines y cuerpo de AND/OR
+    SEP: 18, X_SEP_AND: 34,                // separación vertical entre AND, rieles → AND
+    CANAL: 22, JOG: 14, OR_SEP: 26,        // canal de enrutado hacia la OR
+    SAL: 46,                               // cable de salida
+  };
+  const r2 = v => Math.round(v * 100) / 100;
+
+  function puntoEnInterior(px, py, s) {
+    const [x1, y1, x2, y2] = s, eps = 1e-6;
+    if (x1 === x2) return Math.abs(px - x1) < eps && py > Math.min(y1, y2) + eps && py < Math.max(y1, y2) - eps;
+    if (y1 === y2) return Math.abs(py - y1) < eps && px > Math.min(x1, x2) + eps && px < Math.max(x1, x2) - eps;
+    return false;
+  }
+
+  // Punto negro donde un cable termina sobre el tramo de otro (derivación en T)
+  // o donde se encuentran 3 o más extremos. Un cruce simple no lleva punto.
+  function calcularPuntos(segmentos) {
+    const clave = (x, y) => r2(x) + ',' + r2(y);
+    const grado = new Map();
+    for (const s of segmentos) for (const [x, y] of [[s[0], s[1]], [s[2], s[3]]])
+      grado.set(clave(x, y), (grado.get(clave(x, y)) || 0) + 1);
+    const puntos = new Map();
+    for (const s of segmentos) for (const [x, y] of [[s[0], s[1]], [s[2], s[3]]]) {
+      const k = clave(x, y);
+      if (puntos.has(k)) continue;
+      if (grado.get(k) >= 3 || segmentos.some(o => o !== s && puntoEnInterior(x, y, o))) puntos.set(k, [x, y]);
+    }
+    return [...puntos.values()];
+  }
+
+  // Cruces sin conexión: un tramo horizontal y uno vertical que se cortan en el interior de ambos.
+  function contarCruces(segmentos) {
+    const hs = segmentos.filter(s => s[1] === s[3]), vs = segmentos.filter(s => s[0] === s[2]);
+    let n = 0;
+    for (const h of hs) for (const v of vs)
+      if (puntoEnInterior(v[0], h[1], h) && puntoEnInterior(v[0], h[1], v)) n++;
+    return n;
+  }
+
+  // Elige el orden de los términos (de arriba hacia abajo) con menos cruces.
+  // Hasta 5 términos prueba todas las permutaciones; con más, mejora por intercambios.
+  // A igualdad de cruces se conserva el orden original.
+  // Con { ordenFijo: true } se respeta el orden recibido (forma canónica: m0, m1, m2, ...).
+  function modeloDiagrama(patrones, vars, opciones) {
+    const ordenFijo = !!(opciones && opciones.ordenFijo);
+    const costo = orden => { const m = construirModelo(orden, vars); m.cruces = contarCruces(m.segmentos); return m; };
+    let mejor = costo(patrones);
+    const terminar = m => { m.puntos = calcularPuntos(m.segmentos); return m; };
+    if (ordenFijo || patrones.length <= 1 || mejor.cruces === 0) return terminar(mejor);
+    if (patrones.length <= 5) {
+      (function permutar(prefijo, resto) {
+        if (!resto.length) {
+          const m = costo(prefijo);
+          if (m.cruces < mejor.cruces) mejor = m;
+          return;
+        }
+        resto.forEach((p, i) => permutar([...prefijo, p], [...resto.slice(0, i), ...resto.slice(i + 1)]));
+      })([], patrones);
+    } else {
+      let mejoro = true;
+      while (mejoro) {
+        mejoro = false;
+        for (let i = 0; i < patrones.length; i++) for (let j = i + 1; j < patrones.length; j++) {
+          const orden = mejor.orden.slice();
+          [orden[i], orden[j]] = [orden[j], orden[i]];
+          const m = costo(orden);
+          if (m.cruces < mejor.cruces) { mejor = m; mejoro = true; }
+        }
+      }
+    }
+    return terminar(mejor);
+  }
+
+  function construirModelo(patrones, vars) {
+    const m = { ancho: 0, alto: 0, segmentos: [], puntos: [], compuertas: [], entradas: [], salida: null, orden: patrones.slice() };
+    const seg = (x1, y1, x2, y2) => { if (x1 !== x2 || y1 !== y2) m.segmentos.push([r2(x1), r2(y1), r2(x2), r2(y2)]); };
+
+    // Función constante (Fo = 0 o Fo = 1): no hay compuertas.
+    if (!patrones.length || (patrones.length === 1 && literales(patrones[0]) === 0)) {
+      const y = D.TOP, xf = D.X_IN + 120;
+      m.entradas.push({ nombre: patrones.length ? '1' : '0', x: D.X_IN, y, constante: true });
+      seg(D.X_IN, y, xf, y);
+      m.salida = { nombre: NOMBRE_SALIDA, x: xf, y };
+      m.ancho = xf + 44; m.alto = y + 26;
+      return m;
+    }
+
+    // Filas de la banda de entradas: una por literal usado (X, X', Y, Y', ...).
+    const usaV = vars.map((_, i) => patrones.some(p => p[i] === '1'));
+    const usaN = vars.map((_, i) => patrones.some(p => p[i] === '0'));
+    const filas = [];
+    vars.forEach((_, i) => {
+      if (usaV[i]) filas.push({ i, neg: false });
+      if (usaN[i]) filas.push({ i, neg: true });
+    });
+    const R = filas.length;
+    const X_RIEL0 = D.X_NOT + D.NOT_L + D.SEP_RIEL0;
+    filas.forEach((f, r) => { f.y = D.TOP + r * D.FILA; f.x = X_RIEL0 + (R - 1 - r) * D.RIEL; f.taps = []; });
+    const fila = (i, neg) => filas.find(f => f.i === i && f.neg === neg);
+
+    // Entradas e inversores.
+    vars.forEach((v, i) => {
+      const fv = usaV[i] ? fila(i, false) : null, fn = usaN[i] ? fila(i, true) : null;
+      if (!fv && !fn) return;
+      m.entradas.push({ nombre: v, x: D.X_IN, y: (fv || fn).y });
+      if (fv) seg(D.X_IN, fv.y, fv.x, fv.y);
+      if (fn) {
+        if (fv) { seg(D.X_RAMA, fv.y, D.X_RAMA, fn.y); seg(D.X_RAMA, fn.y, D.X_NOT, fn.y); }
+        else seg(D.X_IN, fn.y, D.X_NOT, fn.y);
+        m.compuertas.push({ tipo: 'NOT', x: D.X_NOT, y: fn.y, entradas: [[D.X_NOT, fn.y]], salida: [D.X_NOT + D.NOT_L, fn.y] });
+        seg(D.X_NOT + D.NOT_L, fn.y, fn.x, fn.y);
+      }
+    });
+
+    // Términos producto: una AND por término; un literal solo pasa directo.
+    const xRielMax = X_RIEL0 + (R - 1) * D.RIEL;
+    const X_AND = xRielMax + D.X_SEP_AND;
+    let cursor = D.TOP + (R - 1) * D.FILA + 26;
+    const salidas = [];                       // { x, y, esAND }
+    for (const p of patrones) {
+      const lits = [];
+      for (let i = 0; i < p.length; i++) if (p[i] !== '-') lits.push(fila(i, p[i] === '0'));
+      if (lits.length === 1) {
+        const y = cursor + D.FILA / 2;
+        cursor += D.FILA;
+        lits[0].taps.push(y);
+        salidas.push({ x: lits[0].x, y, esAND: false });
+      } else {
+        const H = Math.max(D.AND_MIN, lits.length * D.PIN);
+        const cy = cursor + D.SEP / 2 + H / 2;
+        cursor += H + D.SEP;
+        const w = D.AND_RECTO + H / 2;
+        const ys = lits.map((_, j) => cy + (j - (lits.length - 1) / 2) * D.PIN);
+        lits.forEach((f, j) => { f.taps.push(ys[j]); seg(f.x, ys[j], X_AND, ys[j]); });
+        m.compuertas.push({ tipo: 'AND', x: X_AND, y: cy, h: H, w, entradas: ys.map(y => [X_AND, y]), salida: [X_AND + w, cy] });
+        salidas.push({ x: X_AND + w, y: cy, esAND: true });
+      }
+    }
+    // Rieles verticales: desde su fila hasta la última derivación.
+    for (const f of filas) seg(f.x, f.y, f.x, Math.max(...f.taps));
+
+    let fondo = cursor;
+    const xMaxAND = Math.max(X_AND, ...salidas.filter(s => s.esAND).map(s => s.x));
+    if (salidas.length === 1) {
+      // Un solo término: sin OR, directo a la salida.
+      const s = salidas[0], xf = xMaxAND + D.SAL;
+      seg(s.x, s.y, xf, s.y);
+      m.salida = { nombre: NOMBRE_SALIDA, x: xf, y: s.y };
+    } else {
+      // Canal hacia la OR. Los cables que bajan se escalonan de afuera hacia adentro
+      // (el más externo dobla más a la derecha) y lo mismo los que suben: así no se cruzan.
+      const k = salidas.length;
+      const X_CANAL = xMaxAND + D.CANAL;
+      // La OR se centra en el término del medio (o entre los dos del medio): el cable central queda recto.
+      const yc = k % 2 ? salidas[(k - 1) / 2].y : Math.round((salidas[k / 2 - 1].y + salidas[k / 2].y) / 2);
+      const pines = salidas.map((_, i) => yc + (i - (k - 1) / 2) * D.PIN);
+      const bajan = [], suben = [];
+      salidas.forEach((s, i) => { if (s.y < pines[i]) bajan.push(i); else if (s.y > pines[i]) suben.push(i); });
+      const jog = new Array(k).fill(0);
+      bajan.forEach((i, j) => { jog[i] = bajan.length - 1 - j; });
+      suben.forEach((i, j) => { jog[i] = j; });
+      const maxJog = Math.max(0, bajan.length - 1, suben.length - 1);
+
+      const H = Math.max(D.AND_MIN, k * D.PIN);
+      const W = 44 + H * 0.3;
+      const CURVA = 2 * (H * 0.1 + 5);          // punto de control de la curva trasera
+      const X_OR = X_CANAL + maxJog * D.JOG + D.OR_SEP;
+      const top = yc - H / 2;
+      const pinX = y => { const t = (y - top) / H; return X_OR + 2 * t * (1 - t) * CURVA; };
+
+      salidas.forEach((s, i) => {
+        const yp = pines[i], xp = r2(pinX(yp));
+        if (s.y === yp) seg(s.x, s.y, xp, yp);
+        else {
+          const xj = X_CANAL + jog[i] * D.JOG;
+          seg(s.x, s.y, xj, s.y); seg(xj, s.y, xj, yp); seg(xj, yp, xp, yp);
+        }
+      });
+      m.compuertas.push({ tipo: 'OR', x: X_OR, y: yc, h: H, w: W, curva: CURVA,
+        entradas: pines.map(y => [r2(pinX(y)), y]), salida: [r2(X_OR + W), yc] });
+      const xf = r2(X_OR + W + D.SAL);
+      seg(r2(X_OR + W), yc, xf, yc);
+      m.salida = { nombre: NOMBRE_SALIDA, x: xf, y: yc };
+      fondo = Math.max(fondo, yc + H / 2);
+    }
+
+    m.ancho = Math.ceil(m.salida.x + 44);
+    m.alto = Math.ceil(fondo + 14);
+    return m;
+  }
+
+  function svgDiagrama(m) {
+    const T = '#111111', g = [];
+    g.push('<svg xmlns="http://www.w3.org/2000/svg" width="' + m.ancho + '" height="' + m.alto +
+      '" viewBox="0 0 ' + m.ancho + ' ' + m.alto + '" font-family="Segoe UI, Helvetica, Arial, sans-serif">');
+    g.push('<rect width="' + m.ancho + '" height="' + m.alto + '" fill="#ffffff"/>');
+    g.push('<path d="' + m.segmentos.map(s => 'M' + s[0] + ' ' + s[1] + 'L' + s[2] + ' ' + s[3]).join('') +
+      '" fill="none" stroke="' + T + '" stroke-width="2" stroke-linecap="round"/>');
+    for (const c of m.compuertas) {
+      let d;
+      if (c.tipo === 'AND') {
+        const top = c.y - c.h / 2, bot = c.y + c.h / 2, r = c.h / 2, xr = c.x + c.w - r;
+        d = 'M' + c.x + ' ' + top + 'H' + xr + 'A' + r + ' ' + r + ' 0 0 1 ' + xr + ' ' + bot + 'H' + c.x + 'Z';
+      } else if (c.tipo === 'OR') {
+        const top = c.y - c.h / 2, bot = c.y + c.h / 2, xm = r2(c.x + c.w * 0.55), xt = r2(c.x + c.w);
+        d = 'M' + c.x + ' ' + top + 'Q' + r2(c.x + c.curva) + ' ' + c.y + ' ' + c.x + ' ' + bot +
+          'Q' + xm + ' ' + bot + ' ' + xt + ' ' + c.y + 'Q' + xm + ' ' + top + ' ' + c.x + ' ' + top + 'Z';
+      } else {
+        d = 'M' + c.x + ' ' + (c.y - 12) + 'L' + (c.x + 24) + ' ' + c.y + 'L' + c.x + ' ' + (c.y + 12) + 'Z';
+        g.push('<circle cx="' + (c.x + 28) + '" cy="' + c.y + '" r="4" fill="#ffffff" stroke="' + T + '" stroke-width="2"/>');
+      }
+      g.push('<path d="' + d + '" fill="#ffffff" stroke="' + T + '" stroke-width="2" stroke-linejoin="round"/>');
+    }
+    for (const [x, y] of m.puntos) g.push('<circle cx="' + x + '" cy="' + y + '" r="3.5" fill="' + T + '"/>');
+    for (const e of m.entradas)
+      g.push('<text x="' + (e.x - 8) + '" y="' + (e.y + 6) + '" font-size="18" font-weight="600" text-anchor="end" fill="' + T + '">' + e.nombre + '</text>');
+    g.push('<text x="' + (m.salida.x + 8) + '" y="' + (m.salida.y + 6) + '" font-size="18" font-weight="600" fill="' + T + '">' + m.salida.nombre + '</text>');
+    g.push('</svg>');
+    return g.join('\n');
+  }
+
+  return {
+    VARIABLES, NOMBRE_SALIDA, ErrorSintaxis, tokenizar, parsear, variablesUsadas, evaluar, aTexto, minterminos,
+    variablesDeTabla, tablaVerdad, tablaDesdeSalidas, textoMintermino, textoSumaMinterminos, textoDesarrollo, tablaLatex,
+    combinar, literales, textoPatron, textoSOP, ordenarPatrones, quineMcCluskey, terminosSOP, entradaEsMinima,
+    modeloDiagrama, svgDiagrama,
+  };
+})();
+</script>
+
+<!-- INTERFAZ: lee el DOM y llama al motor. -->
+<script id="interfaz">
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+
+  const EJEMPLOS = [
+    "X'Y'Z + X'YZ + XY'", "XY + X'Z + YZ(X+X')", "X'Y + XY + Y'Z'", "XY' + X'YZ + X'Y'Z",
+    "XYZ' + X'Y + Z'Y", "X'Y'Z' + XY'Z + XYZ", "X'Y'Z + X'YZ + XY'Z' + XYZ", "X'Y'Z + XY'Z' + XYZ",
+    "X'YZ + XY'Z + XYZ' + XYZ", "XYZ'", "X + Y'Z", "X'Z + XY'", "XY + X(Y+Z) + Y(Y+Z)", "(X'.Y) + (Z'.Y)",
+  ];
+
+  const estado = {
+    modo: 'A',
+    tablaA: null,                                  // última tabla válida del modo A
+    astA: null,                                    // y su fórmula
+    b: { vars: ['X', 'Y', 'Z'], salidas: new Array(8).fill(0) },
+  };
+
+  function escapar(s) {
+    return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  }
+
+  /* ---------- tabla de verdad ---------- */
+  function dibujarTabla(tabla, editable) {
+    const cab = tabla.vars.map(v => '<th>' + v + '</th>').join('') +
+      '<th class="sal">Fo</th><th class="min">Mintérmino</th>';
+    const cuerpo = tabla.filas.map(f =>
+      '<tr data-m="' + f.m + '"' + (f.salida ? ' class="uno"' : '') + '>' +
+        f.bits.map(b => '<td>' + b + '</td>').join('') +
+        '<td class="sal">' + f.salida + '</td>' +
+        '<td class="min">m' + f.m + '</td>' +
+      '</tr>').join('');
+    $('tabla').innerHTML =
+      '<table class="verdad' + (editable ? ' editable' : '') + '"><thead><tr>' + cab +
+      '</tr></thead><tbody>' + cuerpo + '</tbody></table>' +
+      (editable ? '<p class="nota-b">Clic en una fila para alternar Fo entre 0 y 1.</p>' : '');
+
+    $('ecuaciones').innerHTML =
+      '<div><span class="etq">Suma de minterminos</span>Fo = ' + escapar(Motor.textoSumaMinterminos(tabla.unos)) + '</div>' +
+      '<div><span class="etq">Desarrollo en términos de las variables</span>Fo = ' +
+        escapar(Motor.textoDesarrollo(tabla.unos, tabla.vars)) + '</div>';
+    $('panel-tabla').hidden = false;
+  }
+
+  /* ---------- simplificación (Quine-McCluskey) ---------- */
+  const ROMANOS = ['I', 'II', 'III', 'IV', 'V'];
+  const TAMANOS = ['minterminos', 'pares', 'grupos de 4', 'grupos de 8', 'grupos de 16'];
+  const lista = ms => ms.map(m => 'm' + m).join(', ');
+  const espaciar = p => p.split('').join(' ');
+
+  function dibujarSimplificacion(tabla, ast) {
+    const vars = tabla.vars, n = vars.length;
+    const qm = Motor.quineMcCluskey(tabla.unos, n);
+    const P = i => qm.primos[i].etiqueta;
+    const T = p => escapar(Motor.textoPatron(p, vars));
+    const h = [];
+
+    /* --- resultado --- */
+    const sol = qm.soluciones;
+    h.push('<div class="resultado">');
+    h.push('<span class="etq">Forma mínima (suma de productos)</span>');
+    sol.forEach((s, k) => h.push('<div class="formula-grande">' + (sol.length > 1 ? '<span class="num-sol">' + (k + 1) + '.</span>' : '') +
+      'Fo = ' + escapar(Motor.textoSOP(s.patrones, vars)) + '</div>'));
+    if (tabla.unos.length) {
+      h.push('<div class="meta">' + sol[0].terminos + (sol[0].terminos === 1 ? ' término' : ' términos') + ' · ' +
+        sol[0].literales + ' literales &nbsp;(suma de minterminos: ' + tabla.unos.length + ' términos · ' +
+        tabla.unos.length * n + ' literales)</div>');
+    }
+    const notas = [];
+    if (!tabla.unos.length) notas.push('La función no vale 1 en ninguna fila, así que Fo = 0 y no hay nada que simplificar.');
+    else if (tabla.unos.length === 1 << n) notas.push('La función vale 1 en todas las filas, así que Fo = 1.');
+    if (sol.length > 1) notas.push('Hay ' + sol.length + ' soluciones mínimas con el mismo número de términos y de literales. El diagrama usa la solución 1.');
+    if (tabla.unos.length && qm.columnas.length === 1)
+      notas.push('Ningún par de minterminos difiere en una sola variable: la suma de minterminos ya es mínima.');
+    if (ast && tabla.unos.length && Motor.entradaEsMinima(ast, vars, qm))
+      notas.push('La expresión ingresada ya está en forma mínima.');
+    notas.forEach(t => h.push('<p class="nota">' + t + '</p>'));
+    h.push('</div>');
+
+    if (!tabla.unos.length) { $('simplificacion').innerHTML = h.join(''); $('panel-simpl').hidden = false; return qm; }
+
+    /* --- paso 1: agrupamiento --- */
+    h.push('<h3>Paso 1. Agrupar por número de unos y combinar grupos vecinos</h3>');
+    h.push('<p class="explica">Dos términos de grupos vecinos se combinan si difieren en un solo bit; ese bit se reemplaza por «-». ' +
+      'Los términos marcados con ✓ se combinaron en la columna siguiente. Los que no se combinan son <b>implicantes primos</b> (P1, P2, …).</p>');
+    h.push('<div class="columnas-qm">');
+    qm.columnas.forEach((col, c) => {
+      h.push('<table class="qm"><caption>Columna ' + ROMANOS[c] + ' · ' + TAMANOS[c] + '</caption>' +
+        '<thead><tr><th>Unos</th><th>Minterminos</th><th>' + vars.join(' ') + '</th><th></th></tr></thead><tbody>');
+      col.forEach(g => g.terminos.forEach((t, j) => {
+        h.push('<tr' + (j === 0 ? ' class="inicio-grupo"' : '') + '>' +
+          (j === 0 ? '<td rowspan="' + g.terminos.length + '" class="grupo">' + g.unos + '</td>' : '') +
+          '<td>' + t.mins.join(', ') + '</td><td class="bin">' + espaciar(t.patron) + '</td>' +
+          '<td class="marca-qm">' + (t.combinado ? '✓' : '<b>' + t.etiqueta + '</b>') + '</td></tr>');
+      }));
+      h.push('</tbody></table>');
+    });
+    h.push('</div>');
+
+    /* --- paso 2: implicantes primos --- */
+    h.push('<h3>Paso 2. Implicantes primos</h3><table class="qm"><thead><tr><th>Primo</th><th>Cubre</th><th>' +
+      vars.join(' ') + '</th><th>Término</th></tr></thead><tbody>');
+    qm.primos.forEach(p => h.push('<tr><td><b>' + p.etiqueta + '</b></td><td>' + lista(p.mins) + '</td><td class="bin">' +
+      espaciar(p.patron) + '</td><td class="term">' + T(p.patron) + '</td></tr>'));
+    h.push('</tbody></table>');
+
+    /* --- paso 3: tabla de implicantes primos --- */
+    const esencial = new Map(qm.esenciales.map(e => [e.indice, e.por]));
+    h.push('<h3>Paso 3. Tabla de implicantes primos</h3>');
+    h.push('<p class="explica">Una columna con una sola marca (⊗) indica que ese mintérmino solo lo cubre un primo, que por lo tanto es <b>esencial</b>.</p>');
+    h.push('<div class="tabla-envoltura"><table class="qm carta"><thead><tr><th>Primo</th><th>Término</th>' +
+      qm.unos.map(m => '<th>m' + m + '</th>').join('') + '</tr></thead><tbody>');
+    qm.primos.forEach((p, i) => {
+      h.push('<tr' + (esencial.has(i) ? ' class="esencial"' : '') + '><td><b>' + p.etiqueta + '</b>' +
+        (esencial.has(i) ? ' <span class="tag">esencial</span>' : '') + '</td><td class="term">' + T(p.patron) + '</td>' +
+        qm.unos.map(m => !p.mins.includes(m) ? '<td></td>'
+          : qm.cubridores[m].length === 1 ? '<td class="x unico">⊗</td>' : '<td class="x">×</td>').join('') + '</tr>');
+    });
+    h.push('</tbody></table></div>');
+
+    /* --- paso 4: selección --- */
+    h.push('<h3>Paso 4. Selección de la cobertura mínima</h3><ul class="pasos-lista">');
+    if (qm.esenciales.length)
+      h.push('<li>Primos esenciales: ' + qm.esenciales.map(e => '<b>' + P(e.indice) + '</b> = ' + T(qm.primos[e.indice].patron) +
+        ' (único que cubre ' + lista(e.por) + ')').join('; ') + '.</li>');
+    else h.push('<li>No hay primos esenciales: todos los minterminos están cubiertos por dos o más primos.</li>');
+    if (!qm.restantes.length) {
+      h.push('<li>Los primos esenciales cubren todos los minterminos, así que no hace falta elegir otros.</li>');
+    } else {
+      if (qm.esenciales.length) h.push('<li>Quedan sin cubrir: ' + lista(qm.restantes) + '.</li>');
+      const sumas = qm.petrick.sumas.map(s => '(' + s.primos.map(P).join(' + ') + ')').join('');
+      const prods = qm.petrick.productos.map(pr => pr.map(P).join('·')).join(' + ');
+      h.push('<li>Método de Petrick: para cubrir cada mintérmino restante hay que elegir al menos uno de los primos que lo cubren:' +
+        '<div class="petrick">P = ' + sumas + '</div>' +
+        'Al multiplicar y aplicar la absorción (A + A·B = A) queda:<div class="petrick">P = ' + prods + '</div>' +
+        'Se eligen los productos con menos primos y, a igualdad, con menos literales.</li>');
+    }
+    h.push('<li>Resultado: ' + sol.map(s => 'Fo = ' + s.indices.map(P).join(' + ') + ' = <b>' +
+      escapar(Motor.textoSOP(s.patrones, vars)) + '</b>').join('; también ') + '.</li></ul>');
+
+    $('simplificacion').innerHTML = h.join('');
+    $('panel-simpl').hidden = false;
+    return qm;
+  }
+
+  /* ---------- diagrama de compuertas ---------- */
+  let ultimo = null;          // { tabla, qm } de lo último que se mostró
+  let svgActual = '';
+
+  function formaElegida() { return document.querySelector('input[name="forma"]:checked').value; }
+
+  function dibujarDiagrama() {
+    if (!ultimo) return;
+    const { tabla, qm } = ultimo, vars = tabla.vars;
+    const canonica = formaElegida() === 'canonica';
+    const patrones = canonica
+      ? tabla.unos.map(m => m.toString(2).padStart(vars.length, '0'))
+      : qm.soluciones[0].patrones;
+    const modelo = Motor.modeloDiagrama(patrones, vars, { ordenFijo: canonica });
+    svgActual = Motor.svgDiagrama(modelo);
+    // La expresión se escribe en el mismo orden en que aparecen las compuertas, de arriba hacia abajo.
+    const texto = modelo.orden.length ? modelo.orden.map(p => Motor.textoPatron(p, vars)).join(' + ')
+      : (patrones.length ? '1' : '0');
+    $('expr-diagrama').innerHTML = 'Fo = ' + escapar(texto) +
+      (!canonica && qm.soluciones.length > 1
+        ? ' <span class="nota-sol">(solución 1 de ' + qm.soluciones.length + ')</span>' : '');
+    $('diagrama').innerHTML = svgActual;
+    // Los diagramas pequeños se muestran algo ampliados; los grandes se ajustan al ancho del panel.
+    $('diagrama').firstElementChild.style.width = Math.round(modelo.ancho * 1.3) + 'px';
+    $('panel-diagrama').hidden = false;
+  }
+  document.querySelectorAll('input[name="forma"]').forEach(r => r.addEventListener('change', dibujarDiagrama));
+
+  function nombreArchivo(ext) { return 'circuito-Fo-' + formaElegida() + '.' + ext; }
+  function descargar(blob, nombre) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = nombre;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  $('descargar-svg').addEventListener('click', () => {
+    descargar(new Blob([svgActual], { type: 'image/svg+xml' }), nombreArchivo('svg'));
+  });
+  $('descargar-png').addEventListener('click', () => {
+    const img = new Image();
+    img.onload = () => {
+      const escala = 3;                               // ~3× para que se vea nítido impreso
+      const lienzo = document.createElement('canvas');
+      lienzo.width = img.width * escala; lienzo.height = img.height * escala;
+      const ctx = lienzo.getContext('2d');
+      ctx.scale(escala, escala);
+      ctx.drawImage(img, 0, 0);
+      lienzo.toBlob(b => descargar(b, nombreArchivo('png')), 'image/png');
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgActual);
+  });
+
+  function mostrarResultados(tabla, editable, ast) {
+    dibujarTabla(tabla, editable);
+    ultimo = { tabla, qm: dibujarSimplificacion(tabla, ast) };
+    dibujarDiagrama();
+  }
+  function ocultarResultados() {
+    ultimo = null;
+    $('panel-tabla').hidden = true;
+    $('panel-diagrama').hidden = true;
+    $('panel-simpl').hidden = true;
+  }
+
+  function tablaActual() {
+    return estado.modo === 'A' ? estado.tablaA : Motor.tablaDesdeSalidas(estado.b.vars, estado.b.salidas);
+  }
+
+  /* ---------- modo A ---------- */
+  function mostrarError(texto, err) {
+    const caja = $('error-a');
+    let html = escapar(err.message);
+    if (err.posicion && texto.trim() !== '') {
+      const p = Math.min(err.posicion, texto.length + 1);
+      html += '<pre>' + escapar(texto) + '\n' + ' '.repeat(p - 1) + '<span class="marca">^</span></pre>';
+    }
+    caja.innerHTML = html;
+    caja.hidden = false;
+    $('formula').classList.add('con-error');
+  }
+
+  function generarA() {
+    const texto = $('formula').value;
+    $('error-a').hidden = true;
+    $('formula').classList.remove('con-error');
+    let ast;
+    try { ast = Motor.parsear(texto); }
+    catch (e) {
+      if (e.name !== 'ErrorSintaxis') throw e;
+      mostrarError(texto, e);
+      estado.tablaA = estado.astA = null;
+      ocultarResultados();
+      return;
+    }
+    estado.astA = ast;
+    estado.tablaA = Motor.tablaVerdad(ast);
+    mostrarResultados(estado.tablaA, false, ast);
+  }
+
+  $('form-a').addEventListener('submit', ev => { ev.preventDefault(); generarA(); });
+
+  $('lista-ejemplos').innerHTML = EJEMPLOS.map((e, i) =>
+    '<li><button type="button" data-i="' + i + '"><span class="num">' + (i + 1) + '.</span>' + escapar(e) + '</button></li>').join('');
+  $('lista-ejemplos').addEventListener('click', ev => {
+    const b = ev.target.closest('button');
+    if (!b) return;
+    $('formula').value = EJEMPLOS[+b.dataset.i];
+    generarA();
+  });
+
+  /* ---------- modo B ---------- */
+  function dibujarB() { mostrarResultados(tablaActual(), true, null); }
+
+  $('tabla').addEventListener('click', ev => {
+    if (estado.modo !== 'B') return;
+    const fila = ev.target.closest('tr[data-m]');
+    if (!fila) return;
+    const m = +fila.dataset.m;
+    estado.b.salidas[m] = estado.b.salidas[m] ? 0 : 1;
+    dibujarB();
+  });
+
+  document.querySelectorAll('input[name="nvars"]').forEach(r => r.addEventListener('change', () => {
+    const n = +document.querySelector('input[name="nvars"]:checked').value;
+    estado.b.vars = n === 4 ? ['W', 'X', 'Y', 'Z'] : ['X', 'Y', 'Z'];
+    estado.b.salidas = new Array(1 << n).fill(0);
+    dibujarB();
+  }));
+  $('limpiar-b').addEventListener('click', () => { estado.b.salidas.fill(0); dibujarB(); });
+
+  /* ---------- cambio de modo ---------- */
+  function cambiarModo(modo) {
+    estado.modo = modo;
+    $('tab-a').setAttribute('aria-selected', modo === 'A');
+    $('tab-b').setAttribute('aria-selected', modo === 'B');
+    $('modo-a').hidden = modo !== 'A';
+    $('modo-b').hidden = modo !== 'B';
+    if (modo === 'B') dibujarB();
+    else if (estado.tablaA) mostrarResultados(estado.tablaA, false, estado.astA);
+    else ocultarResultados();
+  }
+  $('tab-a').addEventListener('click', () => cambiarModo('A'));
+  $('tab-b').addEventListener('click', () => cambiarModo('B'));
+
+  /* ---------- copiar LaTeX ---------- */
+  function copiar(texto) {
+    if (navigator.clipboard && window.isSecureContext)
+      return navigator.clipboard.writeText(texto).catch(() => copiarRespaldo(texto));
+    copiarRespaldo(texto);
+    return Promise.resolve();
+  }
+  function copiarRespaldo(texto) {
+    const ta = document.createElement('textarea');
+    ta.value = texto; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    ta.remove();
+  }
+  $('copiar-latex').addEventListener('click', () => {
+    const t = tablaActual();
+    if (!t) return;
+    copiar(Motor.tablaLatex(t)).then(() => {
+      $('aviso-latex').hidden = false;
+      setTimeout(() => { $('aviso-latex').hidden = true; }, 1500);
+    });
+  });
+})();
+</script>
+</body>
+</html>

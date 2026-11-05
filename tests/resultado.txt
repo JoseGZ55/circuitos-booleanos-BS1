@@ -1,0 +1,140 @@
+
+== Parser: los 14 casos de la guía (minterminos en 1) ==
+  ✓ Caso  1: X'Y'Z + X'YZ + XY'             → m1, m3, m4, m5
+  ✓ Caso  2: XY + X'Z + YZ(X+X')            → m1, m3, m6, m7
+  ✓ Caso  3: X'Y + XY + Y'Z'                → m0, m2, m3, m4, m6, m7
+  ✓ Caso  4: XY' + X'YZ + X'Y'Z             → m1, m3, m4, m5
+  ✓ Caso  5: XYZ' + X'Y + Z'Y               → m2, m3, m6
+  ✓ Caso  6: X'Y'Z' + XY'Z + XYZ            → m0, m5, m7
+  ✓ Caso  7: X'Y'Z + X'YZ + XY'Z' + XYZ     → m1, m3, m4, m7
+  ✓ Caso  8: X'Y'Z + XY'Z' + XYZ            → m1, m4, m7
+  ✓ Caso  9: X'YZ + XY'Z + XYZ' + XYZ       → m3, m5, m6, m7
+  ✓ Caso 10: XYZ'                           → m6
+  ✓ Caso 11: X + Y'Z                        → m1, m4, m5, m6, m7
+  ✓ Caso 12: X'Z + XY'                      → m1, m3, m4, m5
+  ✓ Caso 13: XY + X(Y+Z) + Y(Y+Z)           → m2, m3, m5, m6, m7
+  ✓ Caso 14: (X'.Y) + (Z'.Y)                → m2, m3, m6
+
+== Parser: notación del curso ==
+  ✓ yuxtaposición = punto:  XY ≡ X.Y ≡ X . Y ≡ X·Y
+  ✓ espacios en cualquier lugar:  " X ' Y " ≡ X'Y
+  ✓ apóstrofe tipográfico (’) copiado de PDF ≡ '
+  ✓ precedencia: AND antes que OR  (X + YZ ≠ (X+Y)Z)
+  ✓ negación solo afecta a la variable previa:  XY' ≠ (XY)'
+  ✓ doble negación X'' ≡ X
+  ✓ paréntesis yuxtapuestos: X(X'+Y) ≡ XY
+  ✓ producto de sumas: (X+Y)(X+Z) ≡ X + YZ
+  ✓ paréntesis anidados: ((X'+Y)Z)' 
+  ✓ cuatro variables con W (W = bit más significativo)
+  ✓ variablesUsadas devuelve el orden canónico W, X, Y, Z
+  ✓ aTexto normaliza la escritura
+
+== Parser: errores (mensaje en español con posición) ==
+  ✓ ""             → error en posición 1
+  ✓ "   "          → error en posición 1
+  ✓ "X +"          → error en posición 4
+  ✓ "X ++ Y"       → error en posición 4
+  ✓ "+X"           → error en posición 1
+  ✓ "'X"           → error en posición 1
+  ✓ "X..Y"         → error en posición 3
+  ✓ "(X+Y"         → error en posición 1
+  ✓ "X+Y)"         → error en posición 4
+  ✓ "X()"          → error en posición 3
+  ✓ "xY"           → error en posición 1
+  ✓ "A+B"          → error en posición 1
+  ✓ "X & Y"        → error en posición 3
+  ✓ "(X+)Y"        → error en posición 4
+
+== Tabla de verdad ==
+  ✓ 3 variables por defecto: 8 filas X Y Z, aunque la fórmula use menos
+  ✓ con W: 16 filas W X Y Z
+  ✓ filas en orden binario con X como bit más significativo
+  ✓ nombre de cada mintérmino en variables
+  ✓ caso 7 → Fo = m1 + m3 + m4 + m7 y su desarrollo
+  ✓ función nula (modo B sin unos) → Fo = 0
+  ✓ modo B: tabla → desarrollo → parser devuelve la misma tabla (14 casos)
+  ✓ modo B: ida y vuelta para las 65 536 funciones de 4 variables
+  ✓ LaTeX: encabezado, 8 filas, \rowcolor en las filas con 1 y cierre
+
+== Simplificación: los 14 casos de la guía (Quine-McCluskey) ==
+  ✓ Caso  1: X'Y'Z + X'YZ + XY'             → X'Z + XY'
+  ✓ Caso  2: XY + X'Z + YZ(X+X')            → X'Z + XY
+  ✓ Caso  3: X'Y + XY + Y'Z'                → Y + Z'
+  ✓ Caso  4: XY' + X'YZ + X'Y'Z             → X'Z + XY'
+  ✓ Caso  5: XYZ' + X'Y + Z'Y               → X'Y + YZ'
+  ✓ Caso  6: X'Y'Z' + XY'Z + XYZ            → X'Y'Z' + XZ
+  ✓ Caso  7: X'Y'Z + X'YZ + XY'Z' + XYZ     → X'Z + YZ + XY'Z'
+  ✓ Caso  8: X'Y'Z + XY'Z' + XYZ            → X'Y'Z + XY'Z' + XYZ
+  ✓ Caso  9: X'YZ + XY'Z + XYZ' + XYZ       → XY + XZ + YZ
+  ✓ Caso 10: XYZ'                           → XYZ'
+  ✓ Caso 11: X + Y'Z                        → X + Y'Z
+  ✓ Caso 12: X'Z + XY'                      → X'Z + XY'
+  ✓ Caso 13: XY + X(Y+Z) + Y(Y+Z)           → Y + XZ
+  ✓ Caso 14: (X'.Y) + (Z'.Y)                → X'Y + YZ'
+
+== Simplificación: pasos intermedios ==
+  ✓ caso 7: columnas de agrupamiento, primos y esenciales
+  ✓ función cíclica m(0,1,2,5,6,7): sin esenciales, Petrick da 2 soluciones mínimas
+  ✓ ejemplo de 4 variables (Mano) m(0,1,2,5,8,9,10) → X'Y' + X'Z' + W'Y'Z
+  ✓ casos límite: Fo = 0 y Fo = 1
+  ✓ forma no SOP (YZ(X+X')) no se considera "ya mínima"
+
+== Simplificación: verificación exhaustiva ==
+  ✓ las 256 funciones de 3 variables: QM = mínimo por fuerza bruta (términos y literales)
+  ✓ las 65 536 funciones de 4 variables: toda solución mínima reproduce la tabla de verdad
+
+== Diagrama: los 14 casos (se simula el circuito dibujado) ==
+  ✓ Caso  1: simplificada y canónica reproducen m1,m3,m4,m5
+  ✓ Caso  2: simplificada y canónica reproducen m1,m3,m6,m7
+  ✓ Caso  3: simplificada y canónica reproducen m0,m2,m3,m4,m6,m7
+  ✓ Caso  4: simplificada y canónica reproducen m1,m3,m4,m5
+  ✓ Caso  5: simplificada y canónica reproducen m2,m3,m6
+  ✓ Caso  6: simplificada y canónica reproducen m0,m5,m7
+  ✓ Caso  7: simplificada y canónica reproducen m1,m3,m4,m7
+  ✓ Caso  8: simplificada y canónica reproducen m1,m4,m7
+  ✓ Caso  9: simplificada y canónica reproducen m3,m5,m6,m7
+  ✓ Caso 10: simplificada y canónica reproducen m6
+  ✓ Caso 11: simplificada y canónica reproducen m1,m4,m5,m6,m7
+  ✓ Caso 12: simplificada y canónica reproducen m1,m3,m4,m5
+  ✓ Caso 13: simplificada y canónica reproducen m2,m3,m5,m6,m7
+  ✓ Caso 14: simplificada y canónica reproducen m2,m3,m6
+
+== Diagrama: reglas de construcción ==
+  ✓ cada término de 2+ literales es una AND; las AND convergen en una OR
+  ✓ un solo término producto: sin OR, la AND va directo a Fo (caso 10, XYZ')
+  ✓ un término de una sola variable entra directo a la OR, sin AND (caso 13, Y + XZ)
+  ✓ Fo = X': un solo inversor, sin AND ni OR
+  ✓ un inversor por variable negada, en una columna propia tras las entradas
+  ✓ entradas rotuladas a la izquierda y salida rotulada Fo
+  ✓ la banda de entradas e inversores no tiene cruces
+  ✓ funciones constantes Fo = 0 y Fo = 1: sin compuertas
+  ✓ caso 13 (Y + XZ): se elige el orden de términos con menos cruces (1, el mínimo posible)
+  ✓ forma canónica: las AND van en orden de minterminos (m0, m1, ...) de arriba hacia abajo
+
+== Diagrama: verificación exhaustiva ==
+  ✓ las 256 funciones de 3 variables, forma simplificada y canónica
+  ✓ 400 funciones de 4 variables al azar (semilla fija), ambas formas
+
+== Ejemplos de mensajes de error ==
+  ""         La expresión está vacía. Escriba una función, por ejemplo: X'Z + XY'
+  "   "      La expresión está vacía. Escriba una función, por ejemplo: X'Z + XY'
+  "X +"      Posición 4: la expresión termina de forma incompleta después de '+'; falta una variable o un paréntesis.
+  "X ++ Y"   Posición 4: se esperaba una variable o '(' después de '+', pero se encontró '+'.
+  "+X"       Posición 1: se esperaba una variable o '(', pero se encontró '+'.
+  "'X"       Posición 1: el apóstrofe (') debe ir inmediatamente después de una variable o de un ')', por ejemplo X' o (X+Y)'.
+  "X..Y"     Posición 3: se esperaba una variable o '(' después de '.', pero se encontró '.'.
+  "(X+Y"     Posición 1: el paréntesis '(' abierto aquí nunca se cierra; falta ')'.
+  "X+Y)"     Posición 4: el paréntesis ')' no tiene un '(' que le corresponda.
+  "X()"      Posición 3: hay paréntesis vacíos "()".
+  "xY"       Posición 1: las variables se escriben en mayúscula; use 'X' en lugar de 'x'.
+  "A+B"      Posición 1: la variable 'A' no está permitida. Use solo W, X, Y o Z.
+  "X & Y"    Posición 3: el carácter '&' no es válido. Use variables (W, X, Y, Z), ' para negar, + para OR, . o yuxtaposición para AND, y paréntesis.
+  "(X+)Y"    Posición 4: se esperaba una variable o '(' después de '+', pero se encontró ')'.
+
+== Discrepancias con la tabla del enunciado ==
+  ⚠ Caso 2 (XY + X'Z + YZ(X+X')): la tabla del enunciado dice m3, m5, m6, m7, pero la tabla de verdad da m1, m3, m6, m7.
+  ⚠ Caso 6 (X'Y'Z' + XY'Z + XYZ): el enunciado propone sin simplificar (X'Y'Z' + XY'Z + XYZ); Quine-McCluskey da X'Y'Z' + XZ.
+  ⚠ Caso 7 (X'Y'Z + X'YZ + XY'Z' + XYZ): el enunciado propone X'Z + XY'Z' + XYZ; Quine-McCluskey da X'Z + YZ + XY'Z'.
+  ⚠ Caso 14 ((X'.Y) + (Z'.Y)): el enunciado propone Y(X'+Z') (forma factorizada, no es suma de productos); Quine-McCluskey da X'Y + YZ'.
+
+Resultado: 96 pruebas correctas, 0 fallidas.
